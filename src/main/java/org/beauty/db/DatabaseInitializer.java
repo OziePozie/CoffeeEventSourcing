@@ -21,7 +21,7 @@ public class DatabaseInitializer {
 
     private static void createTables(Connection connection) {
         String createOrderEventTableSQL = """
-                CREATE TABLE order_events (
+                CREATE TABLE IF NOT EXISTS order_events  (
                     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     event_type VARCHAR(255) NOT NULL,
                     event_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

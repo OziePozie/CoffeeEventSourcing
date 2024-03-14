@@ -29,11 +29,16 @@ public class OrderEventStoreTest {
     @Test
     void saveRegisterOrderEvent_shouldSaveEventToDatabase() throws SQLException {
 
-        OrderEvent testEvent = new RegEvent();
+        RegEvent testEvent = new RegEvent();
         testEvent.setOrderId(1);
         testEvent.setEventType(OrderStatus.REGISTERED);
         testEvent.setEventTime(OffsetDateTime.now());
         testEvent.setEmployeeId(1L);
+        testEvent.setClientId(1L);
+        testEvent.setEmployeeId(1L);
+        testEvent.setEstDeliveryTime(OffsetDateTime.now());
+        testEvent.setItemId(1L);
+        testEvent.setPrice(1.1f);
         assertTrue(eventStore.save(testEvent));
     }
 
