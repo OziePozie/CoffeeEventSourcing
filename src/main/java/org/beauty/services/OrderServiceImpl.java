@@ -5,6 +5,7 @@ import org.beauty.entity.Order;
 import org.beauty.entity.OrderStatus;
 import org.beauty.events.OrderEvent;
 import org.beauty.exceptions.NotRegisteredOrderException;
+import org.beauty.exceptions.OrderAlreadyRegisteredException;
 import org.beauty.exceptions.OrderLifecycleIsEndedException;
 import org.beauty.repositories.EventStore;
 import org.beauty.utils.OrderEventComparator;
@@ -20,6 +21,11 @@ public class OrderServiceImpl implements OrderService{
     public void publishEvent(OrderEvent orderEvent) {
         OrderStatus orderStatus = orderEvent.getEventType();
         OrderEvent lastEvent = eventStore.findLastEventByOrderID(orderEvent.getOrderId());
+
+        if (orderStatus.equals(OrderStatus.REGISTERED) && !(lastEvent == null)){
+            throw new OrderAlreadyRegisteredException();
+        }
+
         if (!orderStatus.equals(OrderStatus.REGISTERED)){
             if (lastEvent == null){
                 throw new NotRegisteredOrderException();
@@ -39,7 +45,6 @@ public class OrderServiceImpl implements OrderService{
     @Override
     public Order findOrder(int id) {
         List<OrderEvent> events = eventStore.findByOrderID(id);
-        System.out.println(events);
         events.sort(new OrderEventComparator());
         Order order = new Order();
         order.setOrderId(id);

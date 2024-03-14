@@ -3,7 +3,6 @@ package org.beauty.events;
 import lombok.*;
 import org.beauty.entity.OrderStatus;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 @NoArgsConstructor
 @Getter

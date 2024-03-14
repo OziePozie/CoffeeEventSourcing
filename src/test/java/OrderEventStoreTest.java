@@ -3,17 +3,13 @@ import org.beauty.entity.OrderStatus;
 import org.beauty.events.OrderEvent;
 import org.beauty.repositories.EventStore;
 import org.beauty.repositories.sqlite.EventStoreImpl;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import java.sql.Connection;
+
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OrderEventStoreTest {

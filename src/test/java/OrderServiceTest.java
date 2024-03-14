@@ -1,25 +1,25 @@
 import org.beauty.db.DatabaseConnection;
 import org.beauty.entity.OrderStatus;
 import org.beauty.events.OrderEvent;
+import org.beauty.exceptions.NotRegisteredOrderException;
+import org.beauty.exceptions.OrderAlreadyRegisteredException;
 import org.beauty.exceptions.OrderLifecycleIsEndedException;
-import org.beauty.repositories.EventStore;
 import org.beauty.repositories.sqlite.EventStoreImpl;
 import org.beauty.services.OrderService;
 import org.beauty.services.OrderServiceImpl;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.time.OffsetDateTime;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OrderServiceTest {
 
     private static OrderService orderService;
+
     @BeforeAll
     static void setUp() {
        DatabaseConnection databaseConnection = DatabaseConnection.getInstance();
@@ -40,6 +40,8 @@ public class OrderServiceTest {
         OrderEvent regEvent = registerEvent();
         orderService.publishEvent(regEvent);
         orderService.publishEvent(cancelEvent);
+
+
     }
 
     @Test
@@ -56,6 +58,28 @@ public class OrderServiceTest {
                 orderService.publishEvent(inWorkEvent));
 
     }
+
+    @Test
+    void newRegisterEventToOrderThatAlreadyRegistered_shouldThrowException() {
+
+        OrderEvent firstRegEvent = registerEvent();
+        OrderEvent secondRegEvent = registerEvent();
+
+        orderService.publishEvent(firstRegEvent);
+
+        assertThrows(OrderAlreadyRegisteredException.class,
+                () -> orderService.publishEvent(secondRegEvent));
+
+    }
+
+    @Test
+    void saveInWorkEventToOrderThatNotRegistered_shouldThrowException(){
+        OrderEvent event = inWorkEvent();
+
+        assertThrows(NotRegisteredOrderException.class,
+                () -> orderService.publishEvent(event));
+    }
+
     @Test
     void testFindOrderByID(){
         OrderEvent regEvent = registerEvent();
@@ -63,10 +87,11 @@ public class OrderServiceTest {
         orderService.publishEvent(regEvent);
         orderService.publishEvent(inWorkEvent);
         var order = orderService.findOrder(1);
-        System.out.println(order);
-    }
+        assertEquals(order.getCurrentStatus(), OrderStatus.IN_WORK);
 
-    static void dropDB(){
+    }
+    @AfterEach
+    void dropDB(){
 
 
 
