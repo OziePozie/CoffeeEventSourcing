@@ -1,5 +1,8 @@
 package org.beauty.entity;
 
+import lombok.Getter;
+
+@Getter
 public enum OrderStatus {
 
     REGISTERED(0),
@@ -16,7 +19,4 @@ public enum OrderStatus {
         this.statusValue = statusValue;
     }
 
-    public int getStatusValue() {
-        return statusValue;
-    }
 }

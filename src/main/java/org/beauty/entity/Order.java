@@ -1,12 +1,15 @@
 package org.beauty.entity;
 
-import java.time.OffsetDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.OffsetDateTime;
+@Getter
+@Setter
 public class Order {
 
     Long orderId;
     Long clientId;
-    Long employeeId;
     OffsetDateTime estDeliveryTime;
     Long itemId;
     Float price;

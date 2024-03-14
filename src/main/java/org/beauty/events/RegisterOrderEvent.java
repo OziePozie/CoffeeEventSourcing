@@ -2,6 +2,7 @@ package org.beauty.events;
 
 import org.beauty.commands.RegisterOrderCommand;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 public class RegisterOrderEvent extends OrderEvent{
@@ -9,7 +10,7 @@ public class RegisterOrderEvent extends OrderEvent{
 
 
     Long clientId;
-    OffsetDateTime estDeliveryTime;
+    LocalDateTime estDeliveryTime;
     Long itemId;
     Float price;
 
