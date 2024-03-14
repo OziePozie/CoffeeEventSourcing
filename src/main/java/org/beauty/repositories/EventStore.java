@@ -7,5 +7,6 @@ import java.util.List;
 public interface EventStore {
 
     boolean save(OrderEvent orderEvent);
-    List<OrderEvent> findByOrderID(Long ID);
+    List<OrderEvent> findByOrderID(int ID);
+    OrderEvent findLastEventByOrderID(int ID);
 }

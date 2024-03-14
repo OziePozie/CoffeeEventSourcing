@@ -2,19 +2,21 @@ package org.beauty.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.beauty.events.OrderEvent;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.List;
+
 @Getter
 @Setter
+@ToString
 public class Order {
 
-    Long orderId;
-    Long clientId;
-    OffsetDateTime estDeliveryTime;
-    Long itemId;
-    Float price;
-    OffsetDateTime createdAt;
+    int orderId;
     OrderStatus currentStatus;
+    List<OrderEvent> eventList;
 
 
 
