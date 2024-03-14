@@ -14,12 +14,8 @@ public class OrderEvent {
     private int orderId;
     private OrderStatus eventType;
     private OffsetDateTime eventTime;
-    private Long clientId;
     private Long employeeId;
-    private OffsetDateTime estDeliveryTime;
-    private Long itemId;
-    private Float price;
-    private String cancellationReason;
+
 
 
 }
