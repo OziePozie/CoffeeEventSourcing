@@ -21,7 +21,6 @@ public class OrderServiceImpl implements OrderService{
     public void publishEvent(OrderEvent orderEvent) {
         OrderStatus orderStatus = orderEvent.getEventType();
         OrderEvent lastEvent = eventStore.findLastEventByOrderID(orderEvent.getOrderId());
-
         if (orderStatus.equals(OrderStatus.REGISTERED) && !(lastEvent == null)){
             throw new OrderAlreadyRegisteredException();
         }

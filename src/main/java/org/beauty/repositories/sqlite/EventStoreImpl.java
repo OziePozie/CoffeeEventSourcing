@@ -3,7 +3,9 @@ package org.beauty.repositories.sqlite;
 import lombok.AllArgsConstructor;
 import org.beauty.db.DatabaseConnection;
 import org.beauty.entity.OrderStatus;
+import org.beauty.events.CancelEvent;
 import org.beauty.events.OrderEvent;
+import org.beauty.events.RegEvent;
 import org.beauty.repositories.EventStore;
 
 import java.sql.PreparedStatement;
@@ -13,6 +15,7 @@ import java.sql.Timestamp;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+
 @AllArgsConstructor
 public class EventStoreImpl implements EventStore {
     private DatabaseConnection connection;
@@ -25,15 +28,16 @@ public class EventStoreImpl implements EventStore {
                 case REGISTERED:
                     query = "INSERT INTO order_events (order_id, event_type, event_time, client_id, employee_id, est_delivery_time, item_id, price) " +
                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    RegEvent regEvent = (RegEvent) event;
                     try (PreparedStatement statement = connection.getConnection().prepareStatement(query)) {
-                        statement.setLong(1, event.getOrderId());
-                        statement.setString(2, event.getEventType().toString());
-                        statement.setTimestamp(3, Timestamp.from(event.getEventTime().toInstant()));
-                        statement.setLong(4, event.getClientId());
-                        statement.setLong(5, event.getEmployeeId());
-                        statement.setTimestamp(6, Timestamp.from(event.getEstDeliveryTime().toInstant()));
-                        statement.setLong(7, event.getItemId());
-                        statement.setFloat(8, event.getPrice());
+                        statement.setLong(1, regEvent.getOrderId());
+                        statement.setString(2, regEvent.getEventType().toString());
+                        statement.setTimestamp(3, Timestamp.from(regEvent.getEventTime().toInstant()));
+                        statement.setLong(4, regEvent.getClientId());
+                        statement.setLong(5, regEvent.getEmployeeId());
+                        statement.setTimestamp(6, Timestamp.from(regEvent.getEstDeliveryTime().toInstant()));
+                        statement.setLong(7, regEvent.getItemId());
+                        statement.setFloat(8, regEvent.getPrice());
                         return statement.executeUpdate() > 0;
 
                     }
@@ -41,12 +45,14 @@ public class EventStoreImpl implements EventStore {
                 case CANCELLED:
                     query = "INSERT INTO order_events (order_id, event_type, event_time, employee_id, cancellation_reason) " +
                             "VALUES (?, ?, ?, ?, ?)";
+                    CancelEvent cancelEvent = (CancelEvent) event;
+
                     try (PreparedStatement statement = connection.getConnection().prepareStatement(query)) {
-                        statement.setLong(1, event.getOrderId());
-                        statement.setString(2, event.getEventType().toString());
-                        statement.setTimestamp(3, Timestamp.from(event.getEventTime().toInstant()));
-                        statement.setLong(4, event.getEmployeeId());
-                        statement.setString(5, event.getCancellationReason());
+                        statement.setLong(1, cancelEvent.getOrderId());
+                        statement.setString(2, cancelEvent.getEventType().toString());
+                        statement.setTimestamp(3, Timestamp.from(cancelEvent.getEventTime().toInstant()));
+                        statement.setLong(4, cancelEvent.getEmployeeId());
+                        statement.setString(5, cancelEvent.getCancellationReason());
 
                         return statement.executeUpdate() > 0;
                     }
@@ -79,10 +85,10 @@ public class EventStoreImpl implements EventStore {
                         
                 SELECT * FROM order_events WHERE order_id = ?
                         """;
-        try (PreparedStatement stmt = connection.getConnection() .prepareStatement(query)){
+        try (PreparedStatement stmt = connection.getConnection().prepareStatement(query)) {
             stmt.setInt(1, ID);
             ResultSet rs = stmt.executeQuery();
-            while (rs.next()){
+            while (rs.next()) {
                 var event = mapResultSetToOrderEvent(rs);
                 events.add(event);
             }
@@ -90,7 +96,7 @@ public class EventStoreImpl implements EventStore {
             throw new RuntimeException();
         }
 
-    return events;
+        return events;
     }
 
     @Override
@@ -112,30 +118,41 @@ public class EventStoreImpl implements EventStore {
     }
 
 
-
     private OrderEvent mapResultSetToOrderEvent(ResultSet resultSet) throws SQLException {
-        OrderEvent event = new OrderEvent();
-        try {
+        OrderStatus eventType = OrderStatus.valueOf(resultSet.getString("event_type"));
+        OrderEvent event;
 
+        switch (eventType) {
+            case REGISTERED:
+                RegEvent regEvent = new RegEvent();
+                regEvent.setClientId(resultSet.getLong("client_id"));
+                regEvent.setPrice(resultSet.getFloat("price"));
+                regEvent.setEstDeliveryTime(resultSet.getTimestamp("est_delivery_time")
+                        .toLocalDateTime()
+                        .atOffset(ZoneOffset.UTC));
+                regEvent.setItemId(resultSet.getLong("item_id"));
+                event = regEvent;
+                break;
+            case CANCELLED:
+                CancelEvent cancelEvent = new CancelEvent();
+                cancelEvent.setCancellationReason(resultSet.getString("cancellation_reason"));
+                event = cancelEvent;
+                break;
+            default:
+                event = new OrderEvent();
+                break;
+        }
 
         event.setEventId(resultSet.getInt("event_id"));
-        event.setEventType(OrderStatus.valueOf(resultSet.getString("event_type")));
         event.setOrderId(resultSet.getInt("order_id"));
+        event.setEventType(eventType);
         event.setEmployeeId(resultSet.getLong("employee_id"));
         event.setEventTime(resultSet.getTimestamp("event_time")
                 .toInstant()
                 .atOffset(ZoneOffset.UTC));
-        event.setClientId(resultSet.getLong("client_id"));
-        event.setPrice(resultSet.getFloat("price"));
-        event.setEstDeliveryTime(resultSet.getTimestamp("est_delivery_time")
-                .toLocalDateTime()
-                .atOffset(ZoneOffset.UTC));
-        event.setItemId(resultSet.getLong("item_id"));
-        event.setCancellationReason(resultSet.getString("cancellation_reason"));
-        } catch (Exception ignored){
 
-        }
         return event;
     }
+
 
 }

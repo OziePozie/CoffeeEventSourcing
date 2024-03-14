@@ -1,5 +1,7 @@
 package org.beauty.db;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -7,6 +9,12 @@ import java.sql.Statement;
 public class DatabaseInitializer {
 
     public static void initializeDatabase() {
+        try {
+            File file = new File("database.db");
+            file.createNewFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         Connection connection = DatabaseConnection.getInstance().getConnection();
         createTables(connection);
     }
